@@ -10,6 +10,12 @@ use cli::Args;
 use level::{parse_log_level, LogLevel};
 use parse::first_token;
 
+#[derive(serde::Serialize)]
+struct Entry<'a> {
+    level: &'a LogLevel,
+    line: &'a str,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
@@ -17,8 +23,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if let Some(first_line) = contents.lines().next() {
         match first_token(first_line) {
-            Some(token) => println!("first token: {}", token),
-            None => println!("empty line"),
+            Some(token) => eprintln!("first token: {}", token),
+            None => eprintln!("empty line"),
         }
     }
 
@@ -35,16 +41,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         if should_print {
-            print_line(&level, line);
+            match args.format {
+                cli::OutputFormat::Text => print_line(&level, line),
+                cli::OutputFormat::Json => {
+                    let entry = Entry {
+                        level: &level,
+                        line,
+                    };
+                    println!("{}", serde_json::to_string(&entry)?);
+                }
+            }
         }
     }
 
     if let Some(&n) = counts.get(&LogLevel::Unknown) {
-        println!("⚠️  {} 라인이 분류 불가", n);
+        eprintln!("⚠️  {} 라인이 분류 불가", n);
     }
 
-    println!("--- summary ---");
-    println!(
+    eprintln!("--- summary ---");
+    eprintln!(
         "ERROR: {}, WARN: {}, INFO: {}, UNKNOWN: {}",
         counts.get(&LogLevel::Error).unwrap_or(&0),
         counts.get(&LogLevel::Warn).unwrap_or(&0),

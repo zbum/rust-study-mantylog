@@ -28,39 +28,38 @@
 | 5 | 파일 IO + 컬렉션 | `fs::read_to_string`, `?` 본격 사용, `HashMap`, `entry().or_insert()` | ✅ 완료 |
 | 6 | CLI 인자 파싱 (clap) | `cargo add`, `clap` derive API, `ValueEnum`, doc comments | ✅ 완료 |
 | 7 | 트레이트 + 모듈 분리 | `trait`/`impl`, `mod`로 코드 분리, `From`/`Into`, `Display` | ✅ 완료 |
-| 8 | JSON 출력 + 마무리 | `serde`/`serde_json`, 통합 + 리팩토링 | 🟡 다음 단계 |
+| 8 | JSON 출력 + 마무리 | `serde`/`serde_json`, `#[cfg(test)]` 단위 테스트, README | ✅ 완료 |
 
 ---
 
-## 현재 진도 (Step 8 시작 전)
+## 현재 진도 (8단계 완수 🎉)
 
-### 동작하는 기능
-- `sample.log` 파일을 읽어 라인별 레벨 분류
-- `LogLevel` enum (`Error`/`Warn`/`Info`/`Unknown`) + `Display` 구현
+### 최종 기능
+- 로그 파일 라인별 레벨 분류 (`ERROR`/`WARN`/`INFO`/`UNKNOWN`)
 - `HashMap<LogLevel, u32>`로 카운팅
-- CLI 인자: `-i/--input <PATH>`, `-f/--filter <LEVEL>`
-- `--help`, `--version` 자동 생성 (clap)
-- 4개 모듈 분리: `main.rs` / `cli.rs` / `level.rs` / `parse.rs`
-- `LevelArg → LogLevel` 변환은 표준 `From` 트레이트로 표현
+- CLI 옵션: `-i/--input`, `-f/--filter`, `--format text|json`
+- 텍스트/JSON(JSONL) 출력 — JSON 모드는 stdout, 메타정보는 stderr (파이프 친화적)
+- `--help` / `--version` 자동 생성
+- 14개 단위 테스트 (`cargo test`)
 
 ### 사용 예시
 ```bash
-cargo run                              # 기본 sample.log 전체 분석
-cargo run -- --filter error            # ERROR 라인만 출력 (카운트는 전체)
-cargo run -- -i other.log -f warn      # 다른 파일 + WARN 필터
-cargo run -- --help                    # 도움말
+cargo run                                          # 기본 분석
+cargo run -- --filter error                        # 필터링
+cargo run -- --filter error --format json          # JSONL 출력
+cargo run -- --filter error --format json | jq '.line'  # 파이프 활용
+cargo test                                         # 테스트 실행
 ```
 
----
+### 다음 학습 후보 (8단계 완수 후)
 
-## Step 8 미리보기 — JSON 출력 + 마무리 (마지막 단계)
-
-- `cargo add serde --features derive` + `cargo add serde_json`
-- `#[derive(Serialize)]`로 구조체/enum을 JSON으로 자동 변환
-- 새 CLI 옵션 `--format text|json` (기본 `text`)
-- 텍스트/JSON 출력 분기 (또는 trait로 다형 처리)
-- 파이프 연결: `mantylog -f error --format json | jq ...` 같은 활용
-- 마지막 정리 — README 추가, 코드 클린업
+이 프로젝트를 더 발전시키거나 새 도메인으로 확장 가능:
+- **lib + bin 분리** — 도메인 로직을 `lib.rs`로, CLI는 `bin/`로 분리해 다른 프로젝트에서 라이브러리로도 사용
+- **`anyhow` / `thiserror`** — 더 정교한 에러 처리
+- **로그 라인 파싱 강화** — `regex` 크레이트로 타임스탬프/메시지 정확 파싱
+- **비동기/HTTP** — `tokio` + `axum`으로 같은 도메인을 REST API로 (커리큘럼 옵션 2)
+- **벤치마크** — `criterion` 크레이트로 성능 측정
+- **GitHub Actions** — `cargo test` 자동 실행 CI
 
 ---
 

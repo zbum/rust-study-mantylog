@@ -3,3 +3,6 @@
 .idea/
 *.iml
 .DS_Store
+
+# 실행 결과 산출물 (예: cargo run -- --format json > out.jsonl)
+*.jsonl
