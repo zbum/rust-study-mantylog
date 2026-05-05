@@ -27,19 +27,21 @@
 | 4 | struct·enum·match + Option/Result | 도메인 모델링, `match` exhaustiveness, `impl` 블록, `?` 연산자 | ✅ 완료 |
 | 5 | 파일 IO + 컬렉션 | `fs::read_to_string`, `?` 본격 사용, `HashMap`, `entry().or_insert()` | ✅ 완료 |
 | 6 | CLI 인자 파싱 (clap) | `cargo add`, `clap` derive API, `ValueEnum`, doc comments | ✅ 완료 |
-| 7 | 트레이트 + 모듈 분리 | `trait`/`impl`, `mod`로 코드 분리, `From`/`Into`, `Display` | 🟡 진행중 |
-| 8 | JSON 출력 + 마무리 | `serde`/`serde_json`, 통합 + 리팩토링 | ⬜ 예정 |
+| 7 | 트레이트 + 모듈 분리 | `trait`/`impl`, `mod`로 코드 분리, `From`/`Into`, `Display` | ✅ 완료 |
+| 8 | JSON 출력 + 마무리 | `serde`/`serde_json`, 통합 + 리팩토링 | 🟡 다음 단계 |
 
 ---
 
-## 현재 진도 (Step 7 시작 전)
+## 현재 진도 (Step 8 시작 전)
 
 ### 동작하는 기능
 - `sample.log` 파일을 읽어 라인별 레벨 분류
-- `LogLevel` enum (`Error`/`Warn`/`Info`/`Unknown`)
+- `LogLevel` enum (`Error`/`Warn`/`Info`/`Unknown`) + `Display` 구현
 - `HashMap<LogLevel, u32>`로 카운팅
-- CLI 인자: `-i/--input <PATH>`, `-f/--filter <LEVEL>` (doc comment로 `--help` 설명 채워짐)
+- CLI 인자: `-i/--input <PATH>`, `-f/--filter <LEVEL>`
 - `--help`, `--version` 자동 생성 (clap)
+- 4개 모듈 분리: `main.rs` / `cli.rs` / `level.rs` / `parse.rs`
+- `LevelArg → LogLevel` 변환은 표준 `From` 트레이트로 표현
 
 ### 사용 예시
 ```bash
@@ -51,16 +53,14 @@ cargo run -- --help                    # 도움말
 
 ---
 
-## Step 7 미리보기 — 트레이트 + 모듈 분리
+## Step 8 미리보기 — JSON 출력 + 마무리 (마지막 단계)
 
-- `src/main.rs`가 비대해졌으니 모듈로 분리:
-  - `src/level.rs` — `LogLevel` 정의 + `impl`
-  - `src/parse.rs` — `parse_log_level`, `first_token`
-  - `src/cli.rs` — `Args`, `LevelArg`
-  - `src/main.rs` — 얇은 진입점
-- `LevelArg::to_log_level()` → `From<LevelArg> for LogLevel` trait 구현으로 관용적 변환
-- `LogLevel`에 `Display` 구현 → `println!("{}", level)` 직접 가능, `label()` 제거 가능
-- `mod`, `pub`, `use` 가시성 시스템
+- `cargo add serde --features derive` + `cargo add serde_json`
+- `#[derive(Serialize)]`로 구조체/enum을 JSON으로 자동 변환
+- 새 CLI 옵션 `--format text|json` (기본 `text`)
+- 텍스트/JSON 출력 분기 (또는 trait로 다형 처리)
+- 파이프 연결: `mantylog -f error --format json | jq ...` 같은 활용
+- 마지막 정리 — README 추가, 코드 클린업
 
 ---
 
@@ -74,7 +74,10 @@ mantylog/
 ├── LEARNING.md          # 이 문서
 ├── sample.log           # 학습용 샘플 로그 (15줄)
 └── src/
-    └── main.rs          # 단일 파일 (Step 7에서 분리 예정)
+    ├── main.rs          # 진입점, 글루 코드
+    ├── cli.rs           # Args, LevelArg
+    ├── level.rs         # LogLevel + From + Display + parse_log_level
+    └── parse.rs         # first_token
 ```
 
 ---

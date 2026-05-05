@@ -1,72 +1,14 @@
-use clap::{Parser, ValueEnum};
+mod cli;
+mod level;
+mod parse;
+
+use clap::Parser;
 use std::collections::HashMap;
 use std::fs;
 
-#[derive(Parser, Debug)]
-#[command(name = "mantylog", version, about = "log analyzer")]
-struct Args {
-    /// 입력 로그 파일 경로
-    #[arg(short, long, default_value = "sample.log")]
-    input: String,
-
-    /// 특정 레벨만 출력 (지정 안하면 전부)
-    #[arg(short, long, value_enum)]
-    filter: Option<LevelArg>,
-}
-
-#[derive(Debug, Clone, ValueEnum)]
-enum LevelArg {
-    Error,
-    Warn,
-    Info,
-    Unknown,
-}
-
-impl LevelArg {
-    fn to_log_level(&self) -> LogLevel {
-        match self {
-            LevelArg::Error => LogLevel::Error,
-            LevelArg::Warn => LogLevel::Warn,
-            LevelArg::Info => LogLevel::Info,
-            LevelArg::Unknown => LogLevel::Unknown,
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-enum LogLevel {
-    Error,
-    Warn,
-    Info,
-    Unknown,
-}
-
-impl LogLevel {
-    fn label(&self) -> &'static str {
-        match self {
-            LogLevel::Error => "ERROR",
-            LogLevel::Warn => "WARN",
-            LogLevel::Info => "INFO",
-            LogLevel::Unknown => "UNKNOWN",
-        }
-    }
-}
-
-fn parse_log_level(line: &str) -> LogLevel {
-    if line.contains("ERROR") {
-        LogLevel::Error
-    } else if line.contains("WARN") {
-        LogLevel::Warn
-    } else if line.contains("INFO") {
-        LogLevel::Info
-    } else {
-        LogLevel::Unknown
-    }
-}
-
-fn first_token(line: &str) -> Option<&str> {
-    line.split_whitespace().next()
-}
+use cli::Args;
+use level::{parse_log_level, LogLevel};
+use parse::first_token;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
@@ -88,12 +30,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         *counts.entry(level.clone()).or_insert(0) += 1;
 
         let should_print = match &args.filter {
-            Some(arg) => arg.to_log_level() == level,
+            Some(arg) => LogLevel::from(arg.clone()) == level,
             None => true,
         };
 
         if should_print {
-            print_line(level.label(), line);
+            print_line(&level, line);
         }
     }
 
@@ -113,6 +55,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn print_line(level: &str, line: &str) {
+fn print_line(level: &LogLevel, line: &str) {
     println!("[{:<7}] {}", level, line);
 }
