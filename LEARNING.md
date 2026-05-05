@@ -26,19 +26,19 @@
 | 3 | Ownership & Borrowing | 소유권 3대 규칙, move, `&`/`&mut`, NLL, `String` vs `&str` | ✅ 완료 |
 | 4 | struct·enum·match + Option/Result | 도메인 모델링, `match` exhaustiveness, `impl` 블록, `?` 연산자 | ✅ 완료 |
 | 5 | 파일 IO + 컬렉션 | `fs::read_to_string`, `?` 본격 사용, `HashMap`, `entry().or_insert()` | ✅ 완료 |
-| 6 | CLI 인자 파싱 (clap) | `cargo add`, `clap` derive API, `ValueEnum`, doc comments | 🟡 진행중 |
-| 7 | 트레이트 + 모듈 분리 | `trait`/`impl`, `mod`로 코드 분리, `From`/`Into`, `Display` | ⬜ 예정 |
+| 6 | CLI 인자 파싱 (clap) | `cargo add`, `clap` derive API, `ValueEnum`, doc comments | ✅ 완료 |
+| 7 | 트레이트 + 모듈 분리 | `trait`/`impl`, `mod`로 코드 분리, `From`/`Into`, `Display` | 🟡 진행중 |
 | 8 | JSON 출력 + 마무리 | `serde`/`serde_json`, 통합 + 리팩토링 | ⬜ 예정 |
 
 ---
 
-## 현재 진도 (Step 6 진행 중)
+## 현재 진도 (Step 7 시작 전)
 
 ### 동작하는 기능
 - `sample.log` 파일을 읽어 라인별 레벨 분류
 - `LogLevel` enum (`Error`/`Warn`/`Info`/`Unknown`)
 - `HashMap<LogLevel, u32>`로 카운팅
-- CLI 인자: `-i/--input <PATH>`, `-f/--filter <LEVEL>`
+- CLI 인자: `-i/--input <PATH>`, `-f/--filter <LEVEL>` (doc comment로 `--help` 설명 채워짐)
 - `--help`, `--version` 자동 생성 (clap)
 
 ### 사용 예시
@@ -48,11 +48,6 @@ cargo run -- --filter error            # ERROR 라인만 출력 (카운트는 �
 cargo run -- -i other.log -f warn      # 다른 파일 + WARN 필터
 cargo run -- --help                    # 도움말
 ```
-
-### Step 6에서 아직 안 한 개선 (선택)
-- 제안 ①: `Args` 필드 위에 `///` doc comment 추가 → `--help`에 설명 표시
-- 제안 ②: 시작 시 banner (`println!("mantylog v0.1...")`) 정리 — clap이 처리하므로 중복
-- 제안 ③: `LevelArg`에 `#[derive(Copy)]` 추가 (지금은 동작에 영향 없음)
 
 ---
 

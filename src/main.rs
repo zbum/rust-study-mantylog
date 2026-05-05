@@ -5,9 +5,11 @@ use std::fs;
 #[derive(Parser, Debug)]
 #[command(name = "mantylog", version, about = "log analyzer")]
 struct Args {
+    /// 입력 로그 파일 경로
     #[arg(short, long, default_value = "sample.log")]
     input: String,
 
+    /// 특정 레벨만 출력 (지정 안하면 전부)
     #[arg(short, long, value_enum)]
     filter: Option<LevelArg>,
 }
@@ -68,12 +70,6 @@ fn first_token(line: &str) -> Option<&str> {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-
-    let app_name = "mantylog";
-    let version = 0.1;
-
-    println!("{} v{} — log analyzer", app_name, version);
-    println!("ready.");
 
     let contents = fs::read_to_string(&args.input)?;
 
